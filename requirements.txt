@@ -1,0 +1,10 @@
+pandas
+matplotlib
+numpy
+scikit-fuzzy
+vaderSentiment
+scipy
+networkx
+streamlit
+plotly
+nltk
