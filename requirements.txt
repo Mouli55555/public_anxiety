@@ -1,10 +1,12 @@
 pandas
-matplotlib
-numpy
 scikit-fuzzy
 vaderSentiment
+numpy
 scipy
 networkx
+nltk
 streamlit
 plotly
-nltk
+requests
+folium
+streamlit-folium
