@@ -10,3 +10,4 @@ plotly
 requests
 folium
 streamlit-folium
+google-generativeai

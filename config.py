@@ -34,3 +34,6 @@ KEYWORD_WEIGHTS = {
     'overwhelmed': 1.5
 }
 
+# --- Gemini AI Agent ---
+# Your free API key from Google AI Studio.
+GEMINI_API_KEY = "AIzaSyDQw0mR-UHGtX2-LDt3XxHmiYJ7waRzOws"

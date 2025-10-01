@@ -15,6 +15,7 @@ import data_processor
 from predictor import FuzzyAnxietyPredictor
 import twitter_client
 import location_extractor
+import gemini_client # Import the new Gemini client
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -42,10 +43,8 @@ if 'keywords' not in st.session_state:
     st.session_state.keywords = config.KEYWORD_WEIGHTS.copy()
 if 'fuzzy_predictor' not in st.session_state:
     st.session_state.fuzzy_predictor = FuzzyAnxietyPredictor(st.session_state.keywords)
-# Add a state for our map to prevent it from disappearing
 if 'anxiety_map' not in st.session_state:
     st.session_state.anxiety_map = None
-
 
 # --- Helper function to re-initialize predictor ---
 def update_predictor():
@@ -98,13 +97,14 @@ st.markdown("A dashboard for analyzing tweet data using statistical, fuzzy logic
 st.markdown("---")
 
 # --- Tab Layout ---
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "Community Analysis", 
     "Fuzzy Anxiety Prediction", 
     "Historical Trend Analysis", 
     "High-Risk Identification",
     "Geospatial Map",
-    "Live Twitter Analysis"
+    "Live Twitter Analysis",
+    "🧠 AI Anxiety Coach"
 ])
 
 with tab1:
@@ -216,19 +216,15 @@ with tab5:
                         location=[row['latitude'], row['longitude']], radius=5,
                         popup=popup_text, color='red', fill=True, fill_color='darkred'
                     ).add_to(anxiety_map)
-                # ** THE FIX: Store the generated map in the session state **
                 st.session_state.anxiety_map = anxiety_map
             else:
-                # If no data, clear any previous map
                 st.session_state.anxiety_map = None
                 st.warning("No tweets found above the threshold to map.")
         else:
             st.error("Could not load data to generate the map.")
 
-    # ** THE FIX: Display the map from session state, if it exists **
     if st.session_state.anxiety_map:
         st_folium(st.session_state.anxiety_map, width=725, height=500)
-
 
 with tab6:
     st.header("Live Twitter Anxiety Analysis")
@@ -250,3 +246,44 @@ with tab6:
                 live_df.sort_values(by='anxiety_score', ascending=False, inplace=True)
             st.dataframe(live_df[['Name', 'tweet', 'anxiety_score']], use_container_width=True)
 
+with tab7:
+    st.header("🧠 Your Personal AI Anxiety Coach")
+    st.markdown("Chat with our supportive AI to get guidance on managing anxiety. **Note:** This is not a substitute for professional medical advice.")
+
+    # Initialize chat history in session state
+    if "messages" not in st.session_state:
+        st.session_state.messages = [
+            {
+                "role": "user",
+                "parts": ["(This is the start of our conversation. Your role is to be a compassionate and supportive AI coach specializing in mental wellness and anxiety management. Your primary goal is to provide helpful, evidence-based coping strategies, mindfulness exercises, and positive affirmations. You must never provide medical diagnoses or prescribe medication. Always maintain a calm, empathetic, and encouraging tone. If the user expresses severe distress or mentions self-harm, you must strongly and immediately advise them to contact a crisis hotline or seek professional help from a therapist or counselor. Start the conversation by introducing yourself and asking how you can help today.)"]
+            },
+            {
+                "role": "model",
+                "parts": ["Hello! I'm your personal AI Anxiety Coach. I'm here to offer support and guidance. How are you feeling today, and what's on your mind?"]
+            }
+        ]
+
+    # Display prior chat messages, skipping the initial system prompt
+    for message in st.session_state.messages[1:]:
+        with st.chat_message(message["role"]):
+            st.markdown(message["parts"][0])
+
+    # Accept user input
+    if prompt := st.chat_input("How are you feeling?"):
+        # Add user message to history
+        st.session_state.messages.append({"role": "user", "parts": [prompt]})
+        
+        # Display user message
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        # Get and display AI response
+        with st.chat_message("model"):
+            with st.spinner("Thinking..."):
+                if not config.GEMINI_API_KEY or config.GEMINI_API_KEY == "YOUR_GEMINI_API_KEY_HERE":
+                    st.error("Gemini API Key is not configured. Please add it to your config.py file.")
+                else:
+                    response = gemini_client.get_gemini_response(config.GEMINI_API_KEY, st.session_state.messages)
+                    st.markdown(response)
+                    # Add AI response to history
+                    st.session_state.messages.append({"role": "model", "parts": [response]})

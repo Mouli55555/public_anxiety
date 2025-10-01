@@ -7,7 +7,7 @@ import json
 
 # IMPORTANT: You must get your own Bearer Token from the Twitter Developer Portal.
 # Replace the placeholder text below with your actual token.
-BEARER_TOKEN = "AAAAAAAAAAAAAAAAAAAAAPBi4QEAAAAAMyYjf9Twue7c5iinGoigvEw46H8%3DCEFcliZSivG8obqnMQQPF4wiZKpnS3QZHTnFg5TeokjW8OLj7J"
+BEARER_TOKEN = "AAAAAAAAAAAAAAAAAAAAAEUz4gEAAAAAJJY6dosbGrwQGnpnkFpBNWISPPw%3DmfaTzyImpU6Wv3JnEpV1TXbzB5TGLZTZ7CBLSpyliH6RblwL4O"
 
 SEARCH_URL = "https://api.twitter.com/2/tweets/search/recent"
 
