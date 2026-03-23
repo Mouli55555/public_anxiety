@@ -1,53 +1,65 @@
-Evaluating Public Anxiety - Refactored Project
-This project is a desktop application designed to analyze public anxiety levels by examining keyword frequencies in a dataset of tweets.
-
-This is a refactored version of the original research project, structured for clarity, efficiency, and maintainability.
-
-Team Members (Original Project)
-
-[]
+Evaluating Public Anxiety
+This project is a Streamlit dashboard for exploring anxiety-related patterns in a tweet dataset. It includes community keyword analysis, fuzzy-logic scoring, trend analysis, hotspot mapping, an optional live X/Twitter-style feed powered by Bluesky, and an optional Gemini-based support chat tab.
 
 Features
-Data Processing: Analyzes a large CSV of tweets and segments them into communities.
+Data Processing: Splits the dataset into communities and saves per-community keyword analysis.
 
-Keyword Analysis: Calculates the frequency and score of predefined keywords (e.g., 'anxiety', 'pain', 'love') for each community.
+Fuzzy Anxiety Prediction: Scores tweet text with VADER sentiment and a fuzzy inference system.
 
-Data Visualization: Generates and displays pie charts to visualize the topic distribution within each community.
+Trend Analysis: Charts average anxiety across dataset windows.
 
-Graphical User Interface (GUI): A user-friendly interface built with Tkinter to control the analysis and view results.
+Risk and Map Views: Highlights high-anxiety tweets and plots simulated locations on a map.
+
+Optional Live Integrations: Supports Gemini and a live X/Twitter-style feed powered by a free public Bluesky search source. Gemini uses API credentials; Bluesky live search does not.
 
 How to Run the Application
 1. Prerequisites
-Python 3.6 or newer.
+Python 3.10 or newer is recommended.
 
-The required dataset file twitter_English.csv must be present in the same directory as the application files.
+The dataset file `twitter_English.csv` must be present in the project root.
 
-2. Install Dependencies
-Install the necessary Python libraries using pip and the requirements.txt file. Open your terminal or command prompt in the project directory and run:
+2. Create and activate a virtual environment
+On Windows PowerShell:
 
+```powershell
+py -3.14 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+3. Install dependencies
+
+```powershell
 pip install -r requirements.txt
+```
 
-3. Run the Application
-Execute the main application file from your terminal:
+4. Optional API configuration
+Create a `.env` file in the project root for the optional live API-powered tabs:
 
-python main_app.py
+```powershell
+GEMINI_API_KEY=your-gemini-api-key
+GEMINI_MODEL=gemini-2.5-flash
+BLUESKY_API_BASE_URL=https://api.bsky.app
+```
 
-4. Using the Application
-Process Data: When the application launches, first click the "1. Process Tweet Data" button. This will read twitter_English.csv, perform the analysis, and save the results for each community into a new folder named analysis_results.
+You can still set real OS environment variables instead. If both exist, the OS environment value wins.
 
-View Analysis: After the processing is complete, click on any of the "Community" buttons on the left to view a pie chart visualizing the keyword distribution for that specific community.
+5. Run the Streamlit app
+
+```powershell
+streamlit run app.py
+```
 
 Project Structure
-The refactored code is organized into several key modules:
+`app.py`: Streamlit entry point and dashboard UI.
 
-main_app.py: The main entry point that launches the Tkinter GUI.
+`config.py`: Central configuration and environment-backed API settings.
 
-config.py: A configuration file to easily manage settings like keywords, file paths, and community size.
+`data_processor.py`: CSV loading and community analysis logic.
 
-data_processor.py: Contains all the logic for loading, processing, and analyzing the tweet data using the pandas library.
+`predictor.py`: Fuzzy inference system for anxiety scoring.
 
-visualizer.py: Responsible for generating and embedding matplotlib plots within the Tkinter application.
+`twitter_client.py`: Optional live social feed fetch logic, powered by Bluesky.
 
-requirements.txt: Lists all the project dependencies.
+`gemini_client.py`: Optional Gemini chat integration.
 
-analysis_results/: This directory is created automatically to store the CSV output from the data processing step.
+`community_analysis_results/`: Generated CSV outputs from processed community data.

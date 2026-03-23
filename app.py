@@ -93,7 +93,7 @@ with st.sidebar:
 
 # --- Main Application UI ---
 st.title("🧠 Estimating Public Anxiety from Social Media")
-st.markdown("A dashboard for analyzing tweet data using statistical, fuzzy logic, and live data approaches.")
+st.markdown("A dashboard for analyzing tweet and live social post data using statistical and fuzzy logic approaches.")
 st.markdown("---")
 
 # --- Tab Layout ---
@@ -103,7 +103,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "Historical Trend Analysis", 
     "High-Risk Identification",
     "Geospatial Map",
-    "Live Twitter Analysis",
+    "Live X/Twitter-Style Analysis",
     "🧠 AI Anxiety Coach"
 ])
 
@@ -124,13 +124,13 @@ with tab1:
             df_display = df[df['count'] > 0]
             if not df_display.empty:
                 fig = px.pie(df_display, values='count', names='topic', title=f"Keyword Distribution for {os.path.basename(selected_file).replace('_', ' ').replace('.csv', '').title()}")
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             else:
                 st.warning("No keywords found for this community.")
 
 with tab2:
     st.header("Fuzzy Logic Anxiety Prediction")
-    st.markdown("Enter a tweet to analyze its anxiety level using the updated Fuzzy Inference System.")
+    st.markdown("Enter a tweet to analyze its anxiety level using the upgraded hybrid fuzzy inference system.")
     user_tweet_input = st.text_area("Enter tweet text:", "I'm feeling so stressed and anxious about the upcoming exams, the pressure is just overwhelming.", height=100)
     if st.button("Analyze Tweet Anxiety"):
         if user_tweet_input:
@@ -138,6 +138,7 @@ with tab2:
                 predictor = st.session_state.fuzzy_predictor
                 anxiety_score = predictor.compute_prediction(user_tweet_input)
                 anxiety_level = predictor.interpret_anxiety_score(anxiety_score)
+                feature_breakdown = predictor.get_feature_breakdown(user_tweet_input)
 
                 col1, col2 = st.columns(2)
                 col1.metric("Predicted Anxiety Score", f"{anxiety_score:.2f} / 10")
@@ -146,8 +147,14 @@ with tab2:
                 else: col2.success(f"Interpreted Level: **{anxiety_level}**")
                 
                 with st.expander("Show Analysis Breakdown"):
-                    st.markdown(f"- **Sentiment Score:** `{predictor.get_sentiment_score(user_tweet_input):.2f}`")
-                    st.markdown(f"- **Weighted Keyword Score:** `{predictor.get_keyword_score(user_tweet_input):.2f}`")
+                    st.markdown(f"- **Sentiment Score:** `{feature_breakdown['sentiment_score']:.2f}`")
+                    st.markdown(f"- **Negative Sentiment Signal:** `{feature_breakdown['negative_sentiment']:.2f}`")
+                    st.markdown(f"- **Weighted Keyword Score:** `{feature_breakdown['keyword_score']:.2f}`")
+                    st.markdown(f"- **Distress Signal:** `{feature_breakdown['distress_signal']:.2f}`")
+                    st.markdown(f"- **Dataset-Calibrated Signal:** `{feature_breakdown['learned_signal']:.2f}`")
+                    st.markdown(f"- **Protective Signal:** `{feature_breakdown['protective_signal']:.2f}`")
+                    st.markdown(f"- **Intensity Signal:** `{feature_breakdown['intensity_signal']:.2f}`")
+                    st.markdown(f"- **Crisis Signal:** `{feature_breakdown['crisis_signal']:.2f}`")
 
 with tab3:
     st.header("Historical Trend Analysis")
@@ -168,7 +175,7 @@ with tab3:
                 fig = go.Figure()
                 fig.add_trace(go.Scatter(x=trend_df['Time Interval'], y=trend_df['Average Anxiety Score'], mode='lines+markers', name='Anxiety Trend'))
                 fig.update_layout(title='Public Anxiety Trend Over Time', xaxis_title='Time Interval (Batch of Tweets)', yaxis_title='Average Anxiety Score')
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
         else:
             st.error("Could not load data to perform trend analysis.")
             
@@ -186,7 +193,7 @@ with tab4:
                 high_risk_df.sort_values(by='anxiety_score', ascending=False, inplace=True)
             st.success(f"Found **{len(high_risk_df)}** individuals matching the criteria.")
             if not high_risk_df.empty:
-                st.dataframe(high_risk_df[['Name', 'Email', 'tweet', 'anxiety_score']], use_container_width=True)
+                st.dataframe(high_risk_df[['Name', 'Email', 'tweet', 'anxiety_score']], width='stretch')
         else:
             st.error("Could not load the full dataset.")
 
@@ -227,24 +234,25 @@ with tab5:
         st_folium(st.session_state.anxiety_map, width=725, height=500)
 
 with tab6:
-    st.header("Live Twitter Anxiety Analysis")
-    st.markdown("Fetch and analyze recent tweets directly from the X (Twitter) API.")
+    st.header("Live X/Twitter-Style Anxiety Analysis")
+    st.markdown("Fetch and analyze recent public short-form social posts for live anxiety scoring.")
+    st.caption("Powered by Bluesky public search so the live feed works without a paid X API plan.")
     live_query = st.text_input("Enter a search query:", "anxiety OR depression OR lonely")
-    num_tweets = st.slider("Number of tweets to fetch:", 10, 100, 50)
-    if st.button("Fetch & Analyze Live Tweets"):
-        with st.spinner("Fetching live tweets..."):
+    num_tweets = st.slider("Number of posts to fetch:", 10, 100, 50)
+    if st.button("Fetch & Analyze Live Posts"):
+        with st.spinner("Fetching live posts..."):
             live_df, error_message = twitter_client.fetch_recent_tweets(live_query, max_results=num_tweets)
         if error_message:
-            st.error(f"**Failed to fetch tweets.**\n\nDetails: {error_message}")
+            st.error(f"**Failed to fetch live posts.**\n\nDetails: {error_message}")
         elif live_df.empty:
-            st.warning("No recent tweets found for your query.")
+            st.warning("No recent matching public posts were found for your query.")
         else:
-            st.success(f"Successfully fetched {len(live_df)} tweets.")
-            with st.spinner("Analyzing live tweets..."):
+            st.success(f"Successfully fetched {len(live_df)} posts.")
+            with st.spinner("Analyzing live posts..."):
                 predictor = st.session_state.fuzzy_predictor
                 live_df['anxiety_score'] = live_df['tweet'].apply(predictor.compute_prediction)
                 live_df.sort_values(by='anxiety_score', ascending=False, inplace=True)
-            st.dataframe(live_df[['Name', 'tweet', 'anxiety_score']], use_container_width=True)
+            st.dataframe(live_df[['Name', 'tweet', 'anxiety_score']], width='stretch')
 
 with tab7:
     st.header("🧠 Your Personal AI Anxiety Coach")
@@ -265,7 +273,8 @@ with tab7:
 
     # Display prior chat messages, skipping the initial system prompt
     for message in st.session_state.messages[1:]:
-        with st.chat_message(message["role"]):
+        display_role = "assistant" if message["role"] == "model" else message["role"]
+        with st.chat_message(display_role):
             st.markdown(message["parts"][0])
 
     # Accept user input
@@ -278,12 +287,15 @@ with tab7:
             st.markdown(prompt)
 
         # Get and display AI response
-        with st.chat_message("model"):
+        with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                if not config.GEMINI_API_KEY or config.GEMINI_API_KEY == "YOUR_GEMINI_API_KEY_HERE":
-                    st.error("Gemini API Key is not configured. Please add it to your config.py file.")
+                if not config.GEMINI_API_KEY:
+                    st.error("Gemini API key is not configured. Set the GEMINI_API_KEY environment variable and restart Streamlit.")
                 else:
                     response = gemini_client.get_gemini_response(config.GEMINI_API_KEY, st.session_state.messages)
-                    st.markdown(response)
-                    # Add AI response to history
-                    st.session_state.messages.append({"role": "model", "parts": [response]})
+                    if response.startswith("An unexpected error occurred:"):
+                        st.error(response)
+                    else:
+                        st.markdown(response)
+                        # Add AI response to history
+                        st.session_state.messages.append({"role": "model", "parts": [response]})

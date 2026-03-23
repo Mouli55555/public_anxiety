@@ -6,9 +6,9 @@ print("--- Starting Gemini Connection Test ---")
 
 try:
     # Step 1: Get the API key from the environment variable
-    api_key = os.environ.get("GOOGLE_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     if not api_key:
-        raise ValueError("ERROR: GOOGLE_API_KEY environment variable not found.")
+        raise ValueError("ERROR: GEMINI_API_KEY (or GOOGLE_API_KEY) environment variable not found.")
     
     print("API Key found.")
     

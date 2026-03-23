@@ -41,13 +41,14 @@ def analyze_community(community_df, keywords):
     """
     Analyzes a single community's tweets for keyword frequency and score.
     """
+    community_df = community_df.copy()
     topic_counts = {topic: 0 for topic in keywords}
     total_keyword_mentions = 0
 
-    community_df['tweet'] = community_df['tweet'].astype(str)
+    community_df['tweet'] = community_df['tweet'].fillna('').astype(str)
 
     for topic in keywords:
-        count = community_df['tweet'].str.contains(topic, case=False, na=False).sum()
+        count = community_df['tweet'].str.contains(topic, case=False, na=False, regex=False).sum()
         topic_counts[topic] = count
         total_keyword_mentions += count
 
@@ -77,7 +78,7 @@ def process_and_save_all_communities():
 
     for i in range(config.COMMUNITY_COUNT):
         start_index = i * chunk_size
-        end_index = (i + 1) * chunk_size
+        end_index = len(df) if i == config.COMMUNITY_COUNT - 1 else (i + 1) * chunk_size
         community_df_subset = df.iloc[start_index:end_index]
         analysis_result_df = analyze_community(community_df_subset, keywords_to_analyze)
         output_filepath = os.path.join(config.OUTPUT_DIR, f"community_{i+1}_analysis.csv")

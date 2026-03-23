@@ -1,15 +1,23 @@
 # gemini_client.py
-# This module is responsible for interacting with the Google Gemini API using the 'requests' library.
+# This module is responsible for interacting with the Google Gemini API.
 
-import requests
-import json
+import google.generativeai as genai
 
-# **THE FIX:** Use a model name that is available on your specific account list.
-API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent"
+import config
+
+
+def _build_history(chat_history):
+    return [
+        {
+            "role": msg["role"],
+            "parts": [{"text": part} for part in msg["parts"] if part]
+        }
+        for msg in chat_history if "parts" in msg and msg["parts"]
+    ]
 
 def get_gemini_response(api_key, chat_history):
     """
-    Gets a response from the Gemini model using a direct REST API call.
+    Gets a response from the Gemini model using the official client library.
 
     Args:
         api_key (str): Your Google AI API key.
@@ -18,43 +26,23 @@ def get_gemini_response(api_key, chat_history):
     Returns:
         str: The model's response or an error message.
     """
-    headers = {
-        "Content-Type": "application/json",
-        "X-goog-api-key": api_key  # Send the API key as a header
-    }
-    
-    # The REST API expects a specific JSON format. We convert our chat history to it.
-    valid_history = [
-        {
-            "role": msg["role"],
-            "parts": [{"text": part} for part in msg["parts"] if part]
-        }
-        for msg in chat_history if "parts" in msg and msg["parts"]
-    ]
+    if not api_key:
+        return "Gemini API key is not configured. Set the GEMINI_API_KEY environment variable and restart the app."
 
-    payload = {
-        "contents": valid_history
-    }
-    
     try:
-        response = requests.post(API_URL, headers=headers, data=json.dumps(payload))
-        
-        # Raise an exception if the HTTP request returned an error
-        response.raise_for_status()
-        
-        response_json = response.json()
-        
-        # Extract the text from the response
-        if "candidates" in response_json and response_json["candidates"]:
-            first_candidate = response_json["candidates"][0]
-            if "content" in first_candidate and "parts" in first_candidate["content"]:
-                return first_candidate["content"]["parts"][0]["text"]
-        
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel(config.GEMINI_MODEL)
+        response = model.generate_content(_build_history(chat_history))
+        response_text = getattr(response, "text", "").strip()
+        if response_text:
+            return response_text
         return "Sorry, I received an empty response from the AI."
-
-    except requests.exceptions.HTTPError as http_err:
-        print(f"HTTP error occurred: {http_err}")
-        return f"An error occurred connecting to the service (HTTP {response.status_code}). Details: {response.text}"
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        return f"An unexpected error occurred: {e}"
+        error_text = str(e)
+        if "404" in error_text and "models/" in error_text:
+            return (
+                f"Gemini model '{config.GEMINI_MODEL}' is not available for generateContent. "
+                "Update GEMINI_MODEL in .env to a supported model such as 'gemini-2.5-flash' "
+                "and restart Streamlit."
+            )
+        return f"An unexpected error occurred: {error_text}"

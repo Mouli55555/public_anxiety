@@ -2,6 +2,13 @@
 # Central configuration for the project.
 
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env", override=False)
 
 # --- File Paths ---
 # The name of the input CSV file containing the raw tweet data.
@@ -34,6 +41,9 @@ KEYWORD_WEIGHTS = {
     'overwhelmed': 1.5
 }
 
-# --- Gemini AI Agent ---
-# Your free API key from Google AI Studio.
-GEMINI_API_KEY = "AIzaSyDQw0mR-UHGtX2-LDt3XxHmiYJ7waRzOws"
+# --- Live Integrations ---
+# Values are loaded from the local .env file first, then from the OS
+# environment. Real environment variables still win if both are set.
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip() or os.environ.get("GOOGLE_API_KEY", "").strip()
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash").strip() or "gemini-2.5-flash"
+BLUESKY_API_BASE_URL = os.environ.get("BLUESKY_API_BASE_URL", "https://api.bsky.app").strip() or "https://api.bsky.app"
