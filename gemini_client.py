@@ -1,9 +1,15 @@
 # gemini_client.py
 # This module is responsible for interacting with the Google Gemini API.
 
-import google.generativeai as genai
-
 import config
+
+
+def _load_genai_client():
+    try:
+        import google.generativeai as genai
+        return genai, None
+    except Exception as exc:
+        return None, str(exc)
 
 
 def _build_history(chat_history):
@@ -27,7 +33,14 @@ def get_gemini_response(api_key, chat_history):
         str: The model's response or an error message.
     """
     if not api_key:
-        return "Gemini API key is not configured. Set the GEMINI_API_KEY environment variable and restart the app."
+        return (
+            "Gemini API key is not configured. Add GEMINI_API_KEY to Streamlit "
+            "secrets or your environment, then restart the app."
+        )
+
+    genai, import_error = _load_genai_client()
+    if import_error:
+        return f"Gemini support is unavailable right now: {import_error}"
 
     try:
         genai.configure(api_key=api_key)
@@ -42,7 +55,7 @@ def get_gemini_response(api_key, chat_history):
         if "404" in error_text and "models/" in error_text:
             return (
                 f"Gemini model '{config.GEMINI_MODEL}' is not available for generateContent. "
-                "Update GEMINI_MODEL in .env to a supported model such as 'gemini-2.5-flash' "
-                "and restart Streamlit."
+                "Update GEMINI_MODEL in Streamlit secrets or your environment to a "
+                "supported model such as 'gemini-2.5-flash', then restart the app."
             )
         return f"An unexpected error occurred: {error_text}"

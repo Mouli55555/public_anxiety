@@ -1,15 +1,19 @@
 # data_processor.py
 # Handles loading and processing the raw twitter data.
 
-import pandas as pd
 import os
+from pathlib import Path
+
+import pandas as pd
+
 import config
 
 def load_data(filepath):
     """
     Loads only the tweet column for efficient community analysis.
     """
-    if not os.path.exists(filepath):
+    filepath = Path(filepath)
+    if not filepath.exists():
         print(f"Error: The file '{filepath}' was not found.")
         return None
     try:
@@ -24,7 +28,8 @@ def load_full_data(filepath):
     """
     NEW: Loads all relevant columns (tweet, Name, Email) for high-risk analysis.
     """
-    if not os.path.exists(filepath):
+    filepath = Path(filepath)
+    if not filepath.exists():
         print(f"Error: The file '{filepath}' was not found.")
         return None
     try:
@@ -81,7 +86,7 @@ def process_and_save_all_communities():
         end_index = len(df) if i == config.COMMUNITY_COUNT - 1 else (i + 1) * chunk_size
         community_df_subset = df.iloc[start_index:end_index]
         analysis_result_df = analyze_community(community_df_subset, keywords_to_analyze)
-        output_filepath = os.path.join(config.OUTPUT_DIR, f"community_{i+1}_analysis.csv")
+        output_filepath = Path(config.OUTPUT_DIR) / f"community_{i+1}_analysis.csv"
         analysis_result_df.to_csv(output_filepath, index=False)
         print(f"Successfully processed and saved analysis for Community {i+1}")
 

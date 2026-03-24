@@ -6,19 +6,13 @@ import re
 from collections import Counter
 from pathlib import Path
 
-import nltk
 import numpy as np
 import pandas as pd
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-# --- One-time setup for VADER ---
-try:
-    nltk.data.find("sentiment/vader_lexicon.zip")
-except LookupError:
-    print("Downloading VADER lexicon for sentiment analysis...")
-    nltk.download("vader_lexicon")
+# vaderSentiment bundles its own lexicon, so we do not need NLTK downloads.
 
 STOPWORDS = {
     "a", "about", "after", "all", "also", "am", "an", "and", "any", "are", "as",

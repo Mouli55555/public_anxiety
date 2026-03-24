@@ -49,6 +49,15 @@ You can still set real OS environment variables instead. If both exist, the OS e
 streamlit run app.py
 ```
 
+Deploying to Streamlit Community Cloud
+Use `app.py` as the entrypoint.
+
+Add `GEMINI_API_KEY` in the app's Secrets settings if you want the AI coach tab to work.
+
+This repo now reads configuration from Streamlit secrets, environment variables, or `.env`.
+
+Choose the Python version from Streamlit Cloud's "Advanced settings" during deployment. `runtime.txt` is not used on Community Cloud.
+
 Project Structure
 `app.py`: Streamlit entry point and dashboard UI.
 

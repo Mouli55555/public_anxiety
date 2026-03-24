@@ -6,17 +6,50 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+try:
+    import streamlit as st
+except Exception:
+    st = None
+
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env", override=False)
 
+
+def _read_streamlit_secret(*names):
+    if st is None:
+        return ""
+
+    try:
+        for name in names:
+            if name in st.secrets:
+                value = str(st.secrets[name]).strip()
+                if value:
+                    return value
+    except Exception:
+        return ""
+
+    return ""
+
+
+def _read_setting(*names, default=""):
+    for name in names:
+        value = os.environ.get(name, "").strip()
+        if value:
+            return value
+
+    secret_value = _read_streamlit_secret(*names)
+    if secret_value:
+        return secret_value
+
+    return default
+
 # --- File Paths ---
-# The name of the input CSV file containing the raw tweet data.
-# This file is expected to be in the same directory as the scripts.
-INPUT_FILENAME = "twitter_English.csv"
+# Use absolute repo paths so Cloud deployment does not depend on the process CWD.
+INPUT_FILENAME = BASE_DIR / "twitter_English.csv"
 
 # The directory where the processed community analysis CSV files will be saved.
-OUTPUT_DIR = "community_analysis_results"
+OUTPUT_DIR = BASE_DIR / "community_analysis_results"
 
 # --- Analysis Parameters ---
 # The number of communities to split the dataset into.
@@ -42,8 +75,9 @@ KEYWORD_WEIGHTS = {
 }
 
 # --- Live Integrations ---
-# Values are loaded from the local .env file first, then from the OS
-# environment. Real environment variables still win if both are set.
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip() or os.environ.get("GOOGLE_API_KEY", "").strip()
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash").strip() or "gemini-2.5-flash"
-BLUESKY_API_BASE_URL = os.environ.get("BLUESKY_API_BASE_URL", "https://api.bsky.app").strip() or "https://api.bsky.app"
+# Values are loaded from environment variables first. Because `.env` is loaded
+# into the environment above, local development still works without extra setup.
+# Streamlit secrets act as a fallback on Community Cloud.
+GEMINI_API_KEY = _read_setting("GEMINI_API_KEY", "GOOGLE_API_KEY")
+GEMINI_MODEL = _read_setting("GEMINI_MODEL", default="gemini-2.5-flash")
+BLUESKY_API_BASE_URL = _read_setting("BLUESKY_API_BASE_URL", default="https://api.bsky.app")

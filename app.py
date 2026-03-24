@@ -3,7 +3,6 @@
 
 import streamlit as st
 import pandas as pd
-import os
 import plotly.express as px
 import plotly.graph_objects as go
 import folium
@@ -110,20 +109,19 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
 with tab1:
     st.header("Community Keyword Analysis")
     st.markdown("Select a community to visualize the distribution of keywords.")
-    output_files = [f for f in os.listdir(config.OUTPUT_DIR) if f.endswith('.csv')] if os.path.exists(config.OUTPUT_DIR) else []
+    output_files = sorted(config.OUTPUT_DIR.glob("*.csv")) if config.OUTPUT_DIR.exists() else []
     if not output_files:
         st.info("Please process the community data first using the button in the sidebar.")
     else:
-        community_files = sorted([os.path.join(config.OUTPUT_DIR, f) for f in output_files])
         selected_file = st.selectbox(
-            "Choose a community analysis file:", community_files,
-            format_func=lambda x: os.path.basename(x).replace('_', ' ').replace('.csv', '').title()
+            "Choose a community analysis file:", output_files,
+            format_func=lambda x: x.stem.replace('_', ' ').title()
         )
         if selected_file:
             df = pd.read_csv(selected_file)
             df_display = df[df['count'] > 0]
             if not df_display.empty:
-                fig = px.pie(df_display, values='count', names='topic', title=f"Keyword Distribution for {os.path.basename(selected_file).replace('_', ' ').replace('.csv', '').title()}")
+                fig = px.pie(df_display, values='count', names='topic', title=f"Keyword Distribution for {selected_file.stem.replace('_', ' ').title()}")
                 st.plotly_chart(fig, width='stretch')
             else:
                 st.warning("No keywords found for this community.")
@@ -290,7 +288,7 @@ with tab7:
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 if not config.GEMINI_API_KEY:
-                    st.error("Gemini API key is not configured. Set the GEMINI_API_KEY environment variable and restart Streamlit.")
+                    st.error("Gemini API key is not configured. Add GEMINI_API_KEY to Streamlit secrets or your environment, then restart the app.")
                 else:
                     response = gemini_client.get_gemini_response(config.GEMINI_API_KEY, st.session_state.messages)
                     if response.startswith("An unexpected error occurred:"):
